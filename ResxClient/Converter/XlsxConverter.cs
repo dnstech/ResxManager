@@ -273,19 +273,21 @@ namespace ResourceManager.Converter
 
             public static List<TranslationRow> LoadRows(IXLWorksheet worksheet)
             {
-                List<TranslationRow> result = new List<TranslationRow>();
+                var result = new List<TranslationRow>();
 
-                var cultures = ReadCultures(worksheet);
+                var cultures = ReadCultures(worksheet).ToList();
                 
                 foreach (var row in worksheet.RowsUsed().Skip(1))
                 {
-                    var textValues = row.Cells(1, cultures.Count() + 2).Select(cell => (cell.Value != null ? cell.Value.ToString() : null)).ToList<String>();
+                    var textValues = row.Cells(1, cultures.Count() + 2).Select(cell => (cell.Value != null ? cell.Value.ToString() : null)).ToList();
 
-                    if (textValues.Count() > 0)
+                    if (textValues.Any())
                     {
-                        var customer = new TranslationRow();
-                        customer.ID = textValues[0];
-                        customer.Key = textValues[1];
+                        var customer = new TranslationRow
+                                           {
+                                               ID = textValues[0],
+                                               Key = textValues[1]
+                                           };
 
                         foreach(var culture in cultures) 
                         {
