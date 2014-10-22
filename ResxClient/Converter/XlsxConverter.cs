@@ -180,10 +180,17 @@ namespace ResourceManager.Converter
             foreach (var worksheet in workbook.Worksheets)
             {
                 string projectName = worksheet.Name;
-                if (!Solution.Projects.ContainsKey(projectName))
+                var project = Solution.Projects.ContainsKey(projectName) ? 
+                    Solution.Projects[projectName] : 
+                    Solution.Projects
+                        .OrderByDescending(p => p.Key.Length)
+                        .Where(p => p.Key.EndsWith(projectName, StringComparison.OrdinalIgnoreCase))
+                        .Select( p => p.Value)
+                        .FirstOrDefault();
+
+                if (project == null)
                     throw new ProjectUnknownException(projectName);
 
-                var project = Solution.Projects[projectName];
                 var translations = TranslationRow.LoadRows(worksheet);
 
                 foreach (var t in translations)
@@ -307,20 +314,26 @@ namespace ResourceManager.Converter
                 var list = new List<TranslationColumn>();
                 foreach (var s in cols)
                 {
-                    var textColumn = new TranslationColumn(new CultureInfo(s));
-                    textColumn.TextColumnIndex = textValues.IndexOf(s);
+                    try
+                    {
+                        var textColumn = new TranslationColumn(new CultureInfo(s));
+                        textColumn.TextColumnIndex = textValues.IndexOf(s);
 
-                    string commentsKey = s;
-                    if (s != "")
-                        commentsKey += " [Comments]";
-                    else
-                        commentsKey += "[Comments]";
+                        string commentsKey = s;
+                        if (s != "")
+                            commentsKey += " [Comments]";
+                        else
+                            commentsKey += "[Comments]";
 
-                    var commentColumn = textValues.Skip(2).Where(t => t.Equals(commentsKey)).FirstOrDefault();
-                    if (commentColumn != null)
-                        textColumn.CommentColumnIndex = textValues.IndexOf(commentColumn);
+                        var commentColumn = textValues.Skip(2).Where(t => t.Equals(commentsKey)).FirstOrDefault();
+                        if (commentColumn != null)
+                            textColumn.CommentColumnIndex = textValues.IndexOf(commentColumn);
 
-                    list.Add(textColumn);
+                        list.Add(textColumn);
+                    }
+                    catch (CultureNotFoundException)
+                    {
+                    }
                 }
 
                 return list;
