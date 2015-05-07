@@ -279,7 +279,7 @@ namespace ResourceManager.Converter
                 
                 foreach (var row in worksheet.RowsUsed().Skip(1))
                 {
-                    var textValues = row.Cells(1, cultures.Count() + 2).Select(cell => (cell.Value != null ? cell.Value.ToString() : null)).ToList();
+                    var textValues = row.Cells(1, (cultures.Count * 2) + 2).Select(cell => (cell.Value != null ? cell.Value.ToString() : null)).ToList();
 
                     if (textValues.Any())
                     {
